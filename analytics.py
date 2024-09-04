@@ -6,6 +6,8 @@ from typing import Dict, List, Tuple
 
 from database import DatabaseManager
 
+from requests import get
+
 class GraphManager:
     """
     Manages all the graph drawing and visualisations of the user data
@@ -158,7 +160,7 @@ class GraphManager:
         return file_name
         # remember to delete the file once sent
     
-    def get_server_rich_time(self, members: list, server_name: str) -> str:
+    def get_server_rich_time(self, members: list, server_name: str, mode: str = "Graph") -> str:
         server_activities: Dict[str, int] = {}
         colors: List[Tuple[int, int, int]] = []
         file_name: str = f"{server_name.replace(" ", "_")}_server_rich.png"
@@ -177,10 +179,20 @@ class GraphManager:
                     server_activities[activity] = sum(activities[activity].values())
                     colors.append(self._random_color())
         
-        plot.pie(server_activities.values(), labels=self.remove_minority_keys(server_activities).keys(),
-                 colors=colors, autopct=lambda percent: self.format_time(percent, server_activities.values()))
-        plot.title(f"{server_name}'s rich status breakdown")
-        plot.savefig(file_name)
-        plot.close()
+        if mode == "Graph":
+        
+            plot.pie(server_activities.values(), labels=self.remove_minority_keys(server_activities).keys(), 
+                     colors=colors, autopct=lambda percent: self.format_time(percent, server_activities.values()))
+            plot.title(f"{server_name}'s rich status breakdown")
+            plot.savefig(file_name)
+            plot.close()
 
-        return file_name
+            return file_name
+        
+        else:
+
+            sorted_activities: Dict[str, int] = {key:value for key, value in sorted(server_activities.items(), key=lambda my_dict: my_dict[1], reverse=True)}
+            top_four: List[str] = [key for key, value in sorted_activities.items()][:4]
+            #connect to igdb via requests
+            #e.g. 
+            #get("https://api.igdb.com/v4/covers")
